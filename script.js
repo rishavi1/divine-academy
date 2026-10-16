@@ -5,7 +5,8 @@
   const DONE_KEY = "divineAcademyCompletedV2";
   const LAST_KEY = "divineAcademyLastLessonV2";
   const POS_KEY = "divineAcademyPositionsV2";
-  const subjects = { maths:"Mathematics", science:"Science", english:"English" };
+  const subjectMap = () => { try { const xs=JSON.parse(localStorage.getItem("divineAcademySubjectsV1")||"[]"); return Object.assign({maths:"Mathematics",science:"Science",english:"English"},Object.fromEntries(xs.map(x=>[x.id,x.name]))); } catch { return {maths:"Mathematics",science:"Science",english:"English"}; } };
+  const subjects = new Proxy({}, {get:(_,key)=>subjectMap()[key] || key});
   const samples = [
     {id:"m11-1",className:"Class 11",subject:"maths",chapter:"Sets",lessonNumber:1,title:"Introduction to Sets",description:"Understand sets, elements, and basic notation.",url:"https://www.youtube.com/watch?v=H6w2c4e2f8Q"},
     {id:"m11-2",className:"Class 11",subject:"maths",chapter:"Sets",lessonNumber:2,title:"Types of Sets",description:"Explore empty, finite, infinite, and equal sets.",url:"https://www.youtube.com/watch?v=H6w2c4e2f8Q"},
@@ -118,4 +119,5 @@
   // Responsive menu helper
   document.querySelectorAll(".menu-toggle").forEach(btn=>btn.addEventListener("click",()=>{const nav=btn.parentElement.querySelector(".site-nav, .main-nav");if(!nav)return;const open=nav.classList.toggle("open");btn.setAttribute("aria-expanded",String(open));}));
   renderSubject();renderWatch();renderDashboard();setupAdmin();
+  document.addEventListener("divine-academy-data-updated",()=>{renderSubject();renderWatch();renderDashboard();});
 })();
