@@ -39,10 +39,11 @@
   const renderSubject = () => {
     const root = document.getElementById("lesson-list"); if (!root) return;
     const params = new URLSearchParams(location.search), subject = params.get("subject") || "maths";
-    const list = allLessons().filter(l=>l.subject===subject);
-    document.title = `${subjects[subject]||"Subject"} Lessons | Divine Academy`;
-    document.getElementById("subject-title").textContent = `${subjects[subject]||"Subject"} Lessons`;
-    document.getElementById("subject-description").textContent = `Classes 11–12 • Chapter-wise lessons arranged in serial order.`;
+    const classFilter = params.get("class");
+    const list = allLessons().filter(l=>l.subject===subject && (!classFilter || l.className===classFilter));
+    document.title = `${classFilter ? classFilter + " " : ""}${subjects[subject]||"Subject"} Lessons | Divine Academy`;
+    document.getElementById("subject-title").textContent = `${classFilter ? classFilter + " • " : ""}${subjects[subject]||"Subject"} Lessons`;
+    document.getElementById("subject-description").textContent = `${classFilter ? classFilter + " • " : "Classes 11–12 • "}Chapter-wise lessons arranged in serial order.`;
     document.querySelectorAll("[data-subject]").forEach(a=>a.classList.toggle("active",a.dataset.subject===subject));
     root.innerHTML = list.length ? list.map((l,i)=>linkRow(l,{subject:true})).join("") : empty("No lessons added yet. Use Add Lessons to add your first video.");
     const finished = list.filter(l=>done().includes(l.id)).length;
@@ -62,9 +63,13 @@
     document.getElementById("watch-title").textContent=l.title;
     document.getElementById("watch-description").textContent=l.description||"";
     const vid=videoId(l.url);
-    if(vid) player.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(vid)}?rel=0" title="${esc(l.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
-    else if(/\.mp4($|\?)/i.test(l.url)) player.innerHTML=`<video controls playsinline src="${esc(l.url)}"></video>`;
-    else player.innerHTML=`<div class="player-placeholder">This lesson URL could not be embedded. <br><a style="color:white" href="${esc(l.url)}" target="_blank" rel="noopener">Open video in a new tab</a></div>`;
+    if(vid && location.protocol === "file:") {
+      player.innerHTML=`<div class="player-placeholder"><h3>Video player needs a website connection</h3><p>You're opening this page directly from your computer. Open Divine Academy through its website address or start it with a local web server to play lessons.</p><p style="font-size:13px;opacity:.85">The lesson will play inside this page when opened through HTTP/HTTPS.</p></div>`;
+    } else if(vid) {
+      // Privacy-enhanced embed. YouTube may still show its own player controls/branding; this site does not add a separate source label.
+      player.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(vid)}?rel=0&playsinline=1&modestbranding=1" title="${esc(l.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe>`;
+    } else if(/\.mp4($|\?)/i.test(l.url)) player.innerHTML=`<video controls playsinline src="${esc(l.url)}"></video>`;
+    else player.innerHTML=`<div class="player-placeholder">This video link could not be played. Check the link or use a direct MP4 file URL.</div>`;
     const saveBtn=document.getElementById("save-button");
     const refreshSave=()=>{saveBtn.textContent=saved().includes(l.id)?"★ Saved for later":"☆ Save for later";};
     saveBtn.onclick=()=>{let s=saved();s=s.includes(l.id)?s.filter(x=>x!==l.id):[...s,l.id];set(SAVED_KEY,s);refreshSave();};
