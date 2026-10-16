@@ -26,3 +26,7 @@ VIDEO PLAYBACK FIX (IMPORTANT)
 - On Windows, if Python is installed, open Command Prompt in this folder and run: py -m http.server 8000
 - Then open http://localhost:8000 in your browser. Keep the Command Prompt window open while using the website.
 - The player uses the privacy-enhanced youtube-nocookie embed and the website does not add a separate “streaming from YouTube” label. YouTube may still display its own player branding/controls; YouTube does not allow websites to guarantee that all branding is removed. Some videos may also block embedding.
+
+FIREBASE VERSION
+See README_FIREBASE_SETUP.txt for the required Firebase Authentication and Firestore setup.
+Open admin.html directly on your hosted site to sign in and manage online lessons.
