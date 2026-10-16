@@ -30,5 +30,3 @@ VIDEO PLAYBACK FIX (IMPORTANT)
 FIREBASE VERSION
 See README_FIREBASE_SETUP.txt for the required Firebase Authentication and Firestore setup.
 Open admin.html directly on your hosted site to sign in and manage online lessons.
-
-Student login has been removed in this version. Learning pages do not require student accounts.

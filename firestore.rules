@@ -1,18 +1,16 @@
 rules_version = '2';
 service cloud.firestore {
- match /databases/{database}/documents {
-  function isTeacher() { return request.auth != null && request.auth.uid == 'IKOFW1ZaP0erGRstYo6IMK8wNju2'; }
-  function isActiveStudent() { return request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.active == true; }
-  match /lessons/{lessonId} {
-   allow read: if isTeacher() || (isActiveStudent() && resource.data.published == true);
-   allow create: if isTeacher() && request.resource.data.createdBy == request.auth.uid;
-   allow update, delete: if isTeacher();
+  match /databases/{database}/documents {
+    function isTeacher() {
+      return request.auth != null && request.auth.uid == 'IKOFW1ZaP0erGRstYo6IMK8wNju2';
+    }
+    match /lessons/{lessonId} {
+      allow read: if isTeacher() || resource.data.published == true;
+      allow create: if isTeacher()
+        && request.resource.data.keys().hasAll(['className','subject','chapter','lessonNumber','title','url','description','published','createdBy'])
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
+    }
   }
-  match /classes/{classId} { allow read: if isTeacher() || isActiveStudent(); allow create, update, delete: if isTeacher(); }
-  match /subjects/{subjectId} { allow read: if isTeacher() || isActiveStudent(); allow create, update, delete: if isTeacher(); }
-  match /users/{userId} {
-   allow read: if isTeacher() || (request.auth != null && request.auth.uid == userId);
-   allow create, update, delete: if isTeacher();
-  }
- }
 }
