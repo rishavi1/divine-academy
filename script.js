@@ -111,6 +111,6 @@
     renderAdmin();
   };
   // Responsive menu helper
-  document.querySelectorAll(".menu-toggle").forEach(btn=>btn.addEventListener("click",()=>{const nav=btn.parentElement.querySelector(".main-nav");const open=nav.classList.toggle("open");btn.setAttribute("aria-expanded",String(open));}));
+  document.querySelectorAll(".menu-toggle").forEach(btn=>btn.addEventListener("click",()=>{const nav=btn.parentElement.querySelector(".site-nav, .main-nav");if(!nav)return;const open=nav.classList.toggle("open");btn.setAttribute("aria-expanded",String(open));}));
   renderSubject();renderWatch();renderDashboard();setupAdmin();
 })();
