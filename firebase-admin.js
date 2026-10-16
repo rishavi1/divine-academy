@@ -1,27 +1,71 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
-const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
-const secondaryApp=initializeApp(firebaseConfig,"student-account-creator"); const studentAuth=getAuth(secondaryApp);
-const DATA_KEY="divineAcademyLessonsV2"; const form=document.getElementById("lesson-form"); const lockForm=document.getElementById("unlock-form"); const lock=document.getElementById("admin-lock"); const content=document.getElementById("admin-content"); const message=document.getElementById("admin-message"); const lockMessage=document.getElementById("lock-message"); const listRoot=document.getElementById("admin-lesson-list"); const restore=document.getElementById("restore-demo"); if(restore)restore.hidden=true;
-const TEACHER_UID="IKOFW1ZaP0erGRstYo6IMK8wNju2"; const DEFAULT_CLASSES=["Class 11","Class 12"]; const DEFAULT_SUBJECTS=[{id:"maths",name:"Mathematics"},{id:"science",name:"Science"},{id:"english",name:"English"}];
-function friendlyError(err){const c=err?.code||"";if(c.includes("permission-denied"))return "Firestore denied this action. Check the published rules and teacher UID.";if(c.includes("auth/invalid-credential")||c.includes("auth/wrong-password")||c.includes("auth/user-not-found"))return "Email or password is incorrect.";if(c.includes("auth/unauthorized-domain"))return "Add rishavi1.github.io under Firebase Authentication → Settings → Authorized domains.";return `${err?.message||"Something went wrong."} (${c||"unknown error"})`;}
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function sortLessons(a,b){return(a.subject||"").localeCompare(b.subject||"")||(a.className||"").localeCompare(b.className||"")||(a.chapter||"").localeCompare(b.chapter||"")||Number(a.lessonNumber)-Number(b.lessonNumber);}
-async function getConfigList(kind,defaults){const snap=await getDocs(collection(db,kind));return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||"").localeCompare(b.name||""));}
-async function ensureDefaults(){for(const c of DEFAULT_CLASSES){const id=c.toLowerCase().replace(/[^a-z0-9]+/g,"-");const r=doc(db,"classes",id);if(!(await getDoc(r)).exists())await setDoc(r,{name:c,active:true,createdAt:serverTimestamp()});}for(const x of DEFAULT_SUBJECTS){const r=doc(db,"subjects",x.id);if(!(await getDoc(r)).exists())await setDoc(r,{name:x.name,active:true,createdAt:serverTimestamp()});}}
-async function loadTaxonomy(){let classes=(await getConfigList("classes")).filter(x=>x.active!==false);let subjects=(await getConfigList("subjects")).filter(x=>x.active!==false);if(!classes.length)classes=DEFAULT_CLASSES.map(name=>({id:name,name}));if(!subjects.length)subjects=DEFAULT_SUBJECTS;const cs=document.getElementById("lesson-class"),ss=document.getElementById("lesson-subject");const oldC=cs.value,oldS=ss.value;cs.innerHTML=classes.map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join("");ss.innerHTML=subjects.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join("");if(classes.some(x=>x.name===oldC))cs.value=oldC;if(subjects.some(x=>x.id===oldS))ss.value=oldS;document.getElementById("class-list").innerHTML=classes.map(x=>`<div class="student-row"><span>${esc(x.name)}</span><button class="soft-btn" data-class-toggle="${esc(x.id)}" data-active="${x.active!==false}">${x.active===false?"Enable":"Disable"}</button></div>`).join("");document.getElementById("subject-list").innerHTML=subjects.map(x=>`<div class="student-row"><span>${esc(x.name)}</span><button class="soft-btn" data-subject-toggle="${esc(x.id)}" data-active="${x.active!==false}">${x.active===false?"Enable":"Disable"}</button></div>`).join("");}
-async function fetchAll(){const snap=await getDocs(query(collection(db,"lessons"),orderBy("createdAt","desc")));return snap.docs.map(d=>({id:d.id,...d.data()})).sort(sortLessons);}
-async function refreshList(){try{const lessons=await fetchAll();localStorage.setItem(DATA_KEY,JSON.stringify(lessons));const subjects=await getConfigList("subjects");const names=Object.fromEntries(subjects.map(x=>[x.id,x.name]));listRoot.innerHTML=lessons.length?lessons.map(l=>`<div class="admin-item"><div><strong>${esc(l.title)}</strong><small>${esc(l.className)} • ${esc(names[l.subject]||l.subject)} • ${esc(l.chapter)} • Lesson ${esc(l.lessonNumber)}</small></div><button class="soft-btn" data-firebase-delete="${esc(l.id)}" type="button">Delete</button></div>`).join(""):'<div class="empty-state">No lessons in Firebase yet. Add your first lesson above.</div>'; }catch(err){message.textContent=friendlyError(err);}}
-async function refreshStudents(){const root=document.getElementById("student-list");try{const snap=await getDocs(collection(db,"users"));const users=snap.docs.map(d=>({uid:d.id,...d.data()})).sort((a,b)=>(a.studentId||"").localeCompare(b.studentId||""));root.innerHTML=users.length?users.map(u=>`<div class="student-row"><span><strong>${esc(u.name||"Student")}</strong><small>ID: ${esc(u.studentId||"—")} • ${u.active===false?"Restricted":"Active"}</small></span><span><button class="soft-btn" data-user-toggle="${esc(u.uid)}" data-active="${u.active!==false}" type="button">${u.active===false?"Reactivate":"Restrict"}</button> <button class="danger-btn" data-user-delete="${esc(u.uid)}" type="button">Revoke access</button></span></div>`).join(""):'<p>No student accounts yet.</p>';}catch(e){root.textContent=friendlyError(e);}}
-onAuthStateChanged(auth,async user=>{if(user&&user.uid===TEACHER_UID){lock.hidden=true;content.hidden=false;if(!document.getElementById("logout-teacher")){const b=document.createElement("button");b.id="logout-teacher";b.className="soft-btn";b.textContent="Sign out";b.style.margin="0 0 16px";b.onclick=()=>signOut(auth).catch(e=>message.textContent=friendlyError(e));content.prepend(b);}try{await ensureDefaults();await loadTaxonomy();await refreshList();await refreshStudents();}catch(e){message.textContent=friendlyError(e);}}else{if(user)await signOut(auth);lock.hidden=false;content.hidden=true;if(user)lockMessage.textContent="This account is not the configured teacher account.";}});
-lockForm.addEventListener("submit",async e=>{e.preventDefault();lockMessage.textContent="Signing in…";try{await signInWithEmailAndPassword(auth,document.getElementById("admin-email").value.trim(),document.getElementById("admin-password").value);lockMessage.textContent="";}catch(err){lockMessage.textContent=friendlyError(err);}});
-form.addEventListener("submit",async e=>{e.preventDefault();e.stopImmediatePropagation();if(!auth.currentUser||auth.currentUser.uid!==TEACHER_UID){message.textContent="Please sign in with the teacher account first.";return;}const f=new FormData(form),url=String(f.get("url")||"").trim();const videoId=(()=>{try{const u=new URL(url);if(u.hostname.includes("youtu.be"))return u.pathname.split("/").filter(Boolean)[0]||"";if(u.hostname.includes("youtube.com")||u.hostname.includes("youtube-nocookie.com")){if(u.searchParams.get("v"))return u.searchParams.get("v");const p=u.pathname.split("/").filter(Boolean),i=p.findIndex(x=>["embed","shorts","live"].includes(x));return i>=0?p[i+1]||"":"";}}catch{}return "";})();if(!videoId&&!/^https?:\/\/.+\.mp4($|\?)/i.test(url)){message.textContent="Please enter a valid YouTube URL or direct MP4 URL.";return;}const lesson={className:String(f.get("className")),subject:String(f.get("subject")),chapter:String(f.get("chapter")).trim(),lessonNumber:Number(f.get("lessonNumber")),title:String(f.get("title")).trim(),url,description:String(f.get("description")||"").trim(),published:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid};try{message.textContent="Saving lesson online…";await addDoc(collection(db,"lessons"),lesson);form.reset();form.elements.lessonNumber.value=1;message.textContent="Lesson saved online and available to active students.";await refreshList();}catch(err){message.textContent=friendlyError(err);}},true);
-listRoot.addEventListener("click",async e=>{const b=e.target.closest("[data-firebase-delete]");if(!b)return;e.preventDefault();if(!auth.currentUser||!confirm("Delete this lesson for all students?"))return;try{await deleteDoc(doc(db,"lessons",b.dataset.firebaseDelete));message.textContent="Lesson deleted.";await refreshList();}catch(err){message.textContent=friendlyError(err);}},true);
-document.getElementById("class-add-form").addEventListener("submit",async e=>{e.preventDefault();const name=document.getElementById("new-class-name").value.trim();const id=name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");if(!id)return;try{await setDoc(doc(db,"classes",id),{name,active:true,createdAt:serverTimestamp()});e.target.reset();await loadTaxonomy();}catch(err){alert(friendlyError(err));}});
-document.getElementById("subject-add-form").addEventListener("submit",async e=>{e.preventDefault();const name=document.getElementById("new-subject-name").value.trim();const id=name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");if(!id)return;try{await setDoc(doc(db,"subjects",id),{name,active:true,createdAt:serverTimestamp()});e.target.reset();await loadTaxonomy();}catch(err){alert(friendlyError(err));}});
-document.getElementById("class-list").addEventListener("click",async e=>{const b=e.target.closest("[data-class-toggle]");if(!b)return;try{await updateDoc(doc(db,"classes",b.dataset.classToggle),{active:b.dataset.active!=="true"});await loadTaxonomy();}catch(err){alert(friendlyError(err));}});
-document.getElementById("subject-list").addEventListener("click",async e=>{const b=e.target.closest("[data-subject-toggle]");if(!b)return;try{await updateDoc(doc(db,"subjects",b.dataset.subjectToggle),{active:b.dataset.active!=="true"});await loadTaxonomy();}catch(err){alert(friendlyError(err));}});
-document.getElementById("student-add-form").addEventListener("submit",async e=>{e.preventDefault();const out=document.getElementById("student-message"),box=document.getElementById("generated-credentials");const name=document.getElementById("student-name").value.trim(),studentId=document.getElementById("student-id").value.trim().toUpperCase(),password=document.getElementById("student-password").value;const email=studentId.toLowerCase()+"@students.divineacademy.invalid";out.textContent="Creating student account…";box.hidden=true;try{const cred=await createUserWithEmailAndPassword(studentAuth,email,password);await updateProfile(cred.user,{displayName:name});await setDoc(doc(db,"users",cred.user.uid),{name,studentId,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});await signOut(studentAuth);box.innerHTML=`<strong>Student account created</strong><br>Login ID: <code>${esc(studentId)}</code><br>Password: <code>${esc(password)}</code><br><small>Copy these credentials and share privately. This password will not be shown again.</small>`;box.hidden=false;out.textContent="Account created. Give the student the login ID and password.";e.target.reset();await refreshStudents();}catch(err){out.textContent=friendlyError(err);}});
-document.getElementById("student-list").addEventListener("click",async e=>{const toggle=e.target.closest("[data-user-toggle]"),del=e.target.closest("[data-user-delete]");if(!toggle&&!del)return;const uid=(toggle||del).dataset[toggle?"userToggle":"userDelete"];try{if(toggle){await updateDoc(doc(db,"users",uid),{active:toggle.dataset.active!=="true"});}else{if(!confirm("Revoke this student's access to Divine Academy? Their Firebase sign-in record remains, but they cannot access protected lessons."))return;await deleteDoc(doc(db,"users",uid));}await refreshStudents();}catch(err){alert(friendlyError(err));}});
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const DATA_KEY = "divineAcademyLessonsV2";
+const form = document.getElementById("lesson-form");
+const lockForm = document.getElementById("unlock-form");
+const lock = document.getElementById("admin-lock");
+const content = document.getElementById("admin-content");
+const message = document.getElementById("admin-message");
+const lockMessage = document.getElementById("lock-message");
+const listRoot = document.getElementById("admin-lesson-list");
+const restore = document.getElementById("restore-demo");
+if (restore) restore.hidden = true; // Demo lessons must not overwrite online data.
+
+function friendlyError(err) {
+  const code = err?.code || "";
+  if (code.includes("permission-denied")) return "Firestore denied this action. Check that you published the security rules and the teacher UID in firestore.rules matches your Firebase teacher UID.";
+  if (code.includes("auth/invalid-credential") || code.includes("auth/wrong-password") || code.includes("auth/user-not-found")) return "Email or password is incorrect. Use the account created in Firebase Authentication.";
+  if (code.includes("auth/unauthorized-domain")) return "Add your website domain under Firebase Authentication → Settings → Authorized domains.";
+  return `${err?.message || "Something went wrong."} (${code || "unknown error"})`;
+}
+function sortLessons(a,b) { return (a.subject||"").localeCompare(b.subject||"") || (a.className||"").localeCompare(b.className||"") || (a.chapter||"").localeCompare(b.chapter||"") || Number(a.lessonNumber)-Number(b.lessonNumber); }
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c])); }
+async function fetchAll() {
+  const snap = await getDocs(query(collection(db,"lessons"), orderBy("createdAt","desc")));
+  return snap.docs.map(d=>({id:d.id,...d.data()})).sort(sortLessons);
+}
+async function refreshList() {
+  try {
+    const lessons = await fetchAll();
+    localStorage.setItem(DATA_KEY, JSON.stringify(lessons));
+    listRoot.innerHTML = lessons.length ? lessons.map(l=>`<div class="admin-item"><div><strong>${esc(l.title)}</strong><small>${esc(l.className)} • ${esc(({maths:"Mathematics",science:"Science",english:"English"})[l.subject]||l.subject)} • ${esc(l.chapter)} • Lesson ${esc(l.lessonNumber)}</small></div><button class="soft-btn" data-firebase-delete="${esc(l.id)}" type="button">Delete</button></div>`).join("") : '<div class="empty-state">No lessons in Firebase yet. Add your first lesson above.</div>';
+  } catch(err) { message.textContent = friendlyError(err); }
+}
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    lock.hidden = true; content.hidden = false;
+    if (!document.getElementById("logout-teacher")) {
+      const b=document.createElement("button"); b.id="logout-teacher"; b.className="soft-btn"; b.textContent="Sign out"; b.style.margin="0 0 16px";
+      b.onclick=()=>signOut(auth).catch(e=>message.textContent=friendlyError(e)); content.prepend(b);
+    }
+    await refreshList();
+  } else { lock.hidden = false; content.hidden = true; }
+});
+lockForm.addEventListener("submit", async e => {
+  e.preventDefault(); lockMessage.textContent="Signing in…";
+  try { await signInWithEmailAndPassword(auth, document.getElementById("admin-email").value.trim(), document.getElementById("admin-password").value); lockMessage.textContent=""; }
+  catch(err) { lockMessage.textContent=friendlyError(err); }
+});
+form.addEventListener("submit", async e => {
+  e.preventDefault(); e.stopImmediatePropagation();
+  if (!auth.currentUser) { message.textContent="Please sign in first."; return; }
+  const f=new FormData(form), url=String(f.get("url")||"").trim();
+  const videoId = (()=>{try{const u=new URL(url); if(u.hostname.includes("youtu.be"))return u.pathname.split("/").filter(Boolean)[0]||""; if(u.hostname.includes("youtube.com")||u.hostname.includes("youtube-nocookie.com")){if(u.searchParams.get("v"))return u.searchParams.get("v");const p=u.pathname.split("/").filter(Boolean);const i=p.findIndex(x=>["embed","shorts","live"].includes(x));return i>=0?p[i+1]||"":"";} }catch{} return "";})();
+  if (!videoId && !/^https?:\/\/.+\.mp4($|\?)/i.test(url)) { message.textContent="Please enter a valid YouTube URL or direct MP4 URL."; return; }
+  const lesson={className:String(f.get("className")),subject:String(f.get("subject")),chapter:String(f.get("chapter")).trim(),lessonNumber:Number(f.get("lessonNumber")),title:String(f.get("title")).trim(),url,description:String(f.get("description")||"").trim(),published:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid};
+  try { message.textContent="Saving lesson online…"; await addDoc(collection(db,"lessons"),lesson); form.reset(); form.elements.lessonNumber.value=1; message.textContent="Lesson saved to Firebase. Students can now see it from any device."; await refreshList(); }
+  catch(err) { message.textContent=friendlyError(err); }
+}, true);
+listRoot.addEventListener("click", async e => {
+  const b=e.target.closest("[data-firebase-delete]"); if(!b)return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  if(!auth.currentUser || !confirm("Delete this lesson for all students?"))return;
+  try { await deleteDoc(doc(db,"lessons",b.dataset.firebaseDelete)); message.textContent="Lesson deleted."; await refreshList(); }
+  catch(err) { message.textContent=friendlyError(err); }
+}, true);

@@ -1,20 +1,56 @@
-DIVINE ACADEMY - DYNAMIC CLASSES, SUBJECTS & STUDENT ACCESS
-==========================================================
+DIVINE ACADEMY + FIREBASE SETUP
+================================
 
-This upgrade adds class/subject management, student ID/password accounts, access restriction, and no-reload lesson synchronization.
+This version connects the existing Divine Academy lesson pages to Cloud Firestore.
+Teacher login uses Firebase Authentication. Published lessons are shared online.
 
-IMPORTANT SETUP
-1. Upload all files in this folder to the SAME GitHub Pages repository/folder, including new files login.html, student-login.js, and student-access-guard.js.
-2. In Firebase Console > Authentication > Sign-in method, enable Email/Password. Add rishavi1.github.io to Authorized domains.
-3. In Firestore > Rules, publish the exact rules in firestore.rules. The teacher UID in the rules and firebase-admin.js is IKOFW1ZaP0erGRstYo6IMK8wNju2. Verify this is still your teacher account UID before publishing.
-4. Sign in to admin.html with that teacher account. The first load creates default Class 11, Class 12, Mathematics, Science and English records if missing.
-5. Add classes and subjects from the admin panel. Newly added options become available in the lesson form.
-6. Create student IDs/passwords from the admin panel. Students log in at login.html. Restrict sets their profile inactive; Revoke access removes their profile and blocks access. Firebase Auth sign-in records are NOT deleted by the browser UI. True Auth-user deletion/disable requires a trusted server/Admin SDK process; never put a service-account key in website files.
+IMPORTANT: Finish the Firebase Console setup before uploading these files.
 
-SECURITY NOTES
-- Student account IDs are converted to internal Firebase Auth email aliases; students use the ID, not the alias.
-- Passwords are handled by Firebase Authentication, not stored in Firestore. Share generated passwords privately.
-- Firestore rules only allow active students to read published lessons. Do not use public-write rules.
-- All learning pages are gated by student-access-guard.js. If you want public preview pages, remove the guard only from those pages intentionally.
-- Firebase web config is public by design; security comes from Auth and rules.
-- GitHub Pages deploys code, not Firebase rules. Publish rules separately in Firebase Console.
+1) FIREBASE PROJECT
+   Project ID: divine-academy-4ce02
+   The provided firebase-config.js uses the configuration supplied by you.
+
+2) ENABLE AUTHENTICATION
+   Firebase Console > Build > Authentication > Get started > Sign-in method
+   Enable Email/Password.
+   Authentication > Users > Add user: create your teacher email/password.
+
+3) CREATE FIRESTORE
+   Firebase Console > Build > Firestore Database > Create database > Production mode.
+
+4) GET YOUR TEACHER UID
+   Authentication > Users > click your teacher account > copy User UID.
+   The provided firestore.rules file already contains your teacher UID: IKOFW1ZaP0erGRstYo6IMK8wNju2
+   Paste all rules into Firebase Console > Firestore Database > Rules and click Publish.
+   If you later change teacher accounts, update the UID in the rules first.
+
+5) AUTHORIZE YOUR WEBSITE DOMAIN
+   Authentication > Settings > Authorized domains > Add domain if needed.
+   For GitHub Pages, add the hostname only, e.g. rishavi1.github.io
+   (do not include https:// or a path). Your exact domain may differ.
+
+6) UPLOAD TO GITHUB PAGES
+   Upload/replace the website files in the same GitHub Pages repository, keeping
+   the folder structure. Do not upload just the HTML files; upload the .js files
+   and firestore.rules/README too. Commit changes and wait for Pages deployment.
+
+7) ADD LESSONS
+   Open your deployed site and navigate directly to /admin.html.
+   Sign in with the Firebase teacher email/password.
+   Add class, subject, chapter, lesson number, title, YouTube URL, description.
+   Published lessons will be saved in Firestore and loaded on student subject/watch
+   pages across devices. The teacher page is not linked in public navigation.
+
+NOTES
+- The Firebase web config (including apiKey) is not a server secret. Security must
+  come from Authentication and Firestore rules. Never publish service-account keys.
+- Students can read only lessons where published == true. The teacher UID can manage
+  lessons. The included code creates new lessons as published=true.
+- If you already added lessons in the old local-only version, those lessons do NOT
+  automatically migrate. Re-add them from the new admin page, or ask to prepare a
+  migration process.
+- If the page shows permission-denied, verify the teacher UID in Firestore Rules and
+  click Publish. If sign-in says unauthorized domain, add your website hostname in
+  Authentication > Settings > Authorized domains.
+- Test on a hosted HTTPS website. Opening HTML directly as file:// is not supported.
+- Video embeds still follow YouTube's embed permissions and availability.
