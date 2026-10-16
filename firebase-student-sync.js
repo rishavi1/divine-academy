@@ -1,18 +1,1 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
-import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
-import { firebaseConfig } from "./firebase-config.js";
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
-const KEY="divineAcademyLessonsV2";
-function sortLessons(a,b){return (a.subject||"").localeCompare(b.subject||"")||(a.className||"").localeCompare(b.className||"")||(a.chapter||"").localeCompare(b.chapter||"")||Number(a.lessonNumber)-Number(b.lessonNumber);}
-try {
-  const snap=await getDocs(query(collection(db,"lessons"),where("published","==",true)));
-  const lessons=snap.docs.map(d=>({id:d.id,...d.data()})).sort(sortLessons);
-  const current=localStorage.getItem(KEY);
-  const next=JSON.stringify(lessons);
-  if(current!==next){localStorage.setItem(KEY,next);window.dispatchEvent(new CustomEvent("divine-academy-lessons-updated"));}
-} catch(err) {
-  console.error("Divine Academy Firebase lesson sync failed:",err);
-  const root=document.getElementById("lesson-list");
-  if(root && !root.textContent.trim()) root.textContent="Unable to load lessons from the online database. Please refresh later.";
-}
+import{initializeApp}from"https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";import{getFirestore,collection,getDocs,query,where}from"https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";import{firebaseConfig}from"./firebase-config.js";const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);const KEY="divineAcademyLessonsV2";const subjects=()=>Object.fromEntries(JSON.parse(localStorage.getItem("divineAcademySubjectsV1")||'[{"id":"maths","name":"Mathematics"},{"id":"science","name":"Science"},{"id":"english","name":"English"}]').map(x=>[x.id,x.name]));function sort(a,b){return(a.subject||"").localeCompare(b.subject||"")||(a.className||"").localeCompare(b.className||"")||(a.chapter||"").localeCompare(b.chapter||"")||Number(a.lessonNumber)-Number(b.lessonNumber);}onAuthStateChanged(auth,async user=>{if(!user)return;try{const snap=await getDocs(query(collection(db,"lessons"),where("published","==",true)));const lessons=snap.docs.map(d=>({id:d.id,...d.data()})).sort(sort);localStorage.setItem(KEY,JSON.stringify(lessons));const subSnap=await getDocs(collection(db,"subjects"));if(!subSnap.empty)localStorage.setItem("divineAcademySubjectsV1",JSON.stringify(subSnap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.active!==false)));const classSnap=await getDocs(collection(db,"classes"));if(!classSnap.empty)localStorage.setItem("divineAcademyClassesV1",JSON.stringify(classSnap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.active!==false)));document.dispatchEvent(new CustomEvent("divine-academy-data-updated"));}catch(err){console.error("Divine Academy sync failed:",err);}});

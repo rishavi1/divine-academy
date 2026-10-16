@@ -59,11 +59,7 @@
       <div><div class="eyebrow">Divine Academy • Online Classroom</div><h1 id="subject-title">Subject Lessons</h1><p id="subject-description">Learn chapter by chapter. Your progress and saved lessons are remembered on this browser.</p></div>
       <a class="action-btn" href="videos.html">My Learning →</a>
     </section>
-    <nav class="subject-switch" aria-label="Subjects">
-      <a href="subject.html?subject=maths" data-subject="maths">Mathematics</a>
-      <a href="subject.html?subject=science" data-subject="science">Science</a>
-      <a href="subject.html?subject=english" data-subject="english">English</a>
-    </nav>
+    <nav id="dynamic-subject-switch" class="subject-switch" aria-label="Subjects"><a href="subject.html?subject=maths" data-subject="maths">Mathematics</a><a href="subject.html?subject=science" data-subject="science">Science</a><a href="subject.html?subject=english" data-subject="english">English</a></nav>
     <div class="learning-grid">
       <section class="panel">
         <h2>Lessons in order</h2>
@@ -79,5 +75,5 @@
       </aside>
     </div>
   </main>
-  <script src="script.js"></script>
-<script type="module" src="firebase-student-sync.js"></script></body></html>
+  <script src="script.js"></script><script type="module" src="student-access-guard.js"></script>
+<script type="module" src="firebase-student-sync.js"></script><script type="module" src="dynamic-catalog.js"></script></body></html>
