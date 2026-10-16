@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Add Lessons | Divine Academy</title><link rel="stylesheet" href="styles.css">
+<style>
+.admin-wrap{max-width:900px;margin:auto;padding:32px 20px 70px}.panel{background:white;border:1px solid #e2e8f3;border-radius:18px;padding:22px;box-shadow:0 8px 28px #172a4d0a}.admin-form{display:grid;grid-template-columns:1fr 1fr;gap:15px}.admin-form label{display:block;font-weight:700;color:#25345c;font-size:14px}.admin-form input,.admin-form select,.admin-form textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #d8e0ef;border-radius:10px;margin-top:7px;font:inherit;background:white}.wide{grid-column:1/-1}.action-btn,.soft-btn{padding:11px 14px;border:0;border-radius:10px;text-decoration:none;font-weight:800;cursor:pointer}.action-btn{background:#244fc4;color:white}.soft-btn{background:#eef2fc;color:#2347a4}.notice{background:#fff6df;border:1px solid #f0dba4;padding:14px;border-radius:12px;color:#6b5118;margin:18px 0}.lesson-admin-list{display:flex;flex-direction:column;gap:8px}.admin-item{border:1px solid #e2e8f3;border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px;justify-content:space-between}.admin-item small{color:#69758c;display:block}@media(max-width:650px){.admin-form{grid-template-columns:1fr}.wide{grid-column:auto}.admin-item{align-items:flex-start;flex-direction:column}}
+</style></head><body>
+<header class="site-header"><div class="container nav-wrap"><a class="brand" href="index.html"><span class="brand-mark">DA</span><span>Divine Academy<small>Learn. Practice. Achieve.</small></span></a><button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button><nav class="main-nav"><a href="index.html">Home</a><a href="courses.html">Subjects</a><a href="videos.html">My Learning</a><a href="admin.html">Add Lessons</a></nav></div></header>
+<main class="admin-wrap"><div class="eyebrow">Teacher tools</div><h1>Add and organize video lessons</h1><p>Add a YouTube link for each lesson. Set the subject, class, chapter, and lesson number to keep the course in serial order.</p>
+<div class="notice"><strong>Important:</strong> This starter version saves lessons in this browser only. To publish lessons so every student sees your new uploads on every device, the website needs a shared database/backend or a course platform. Do not upload private student information here.</div>
+<section class="panel"><form id="lesson-form" class="admin-form">
+<label>Class<select name="className" required><option value="Class 11">Class 11</option><option value="Class 12">Class 12</option></select></label>
+<label>Subject<select name="subject" required><option value="maths">Mathematics</option><option value="science">Science</option><option value="english">English</option></select></label>
+<label>Chapter name<input name="chapter" placeholder="e.g. Sets" required></label>
+<label>Lesson number<input name="lessonNumber" type="number" min="1" value="1" required></label>
+<label class="wide">Lesson title<input name="title" placeholder="e.g. Introduction to Sets" required></label>
+<label class="wide">YouTube video URL<input name="url" type="url" placeholder="https://www.youtube.com/watch?v=..." required></label>
+<label class="wide">Short description<textarea name="description" rows="3" placeholder="What will students learn in this lesson?"></textarea></label>
+<div class="wide"><button class="action-btn" type="submit">＋ Add lesson</button> <button class="soft-btn" type="button" id="restore-demo">Restore sample lessons</button></div>
+</form><p id="admin-message" aria-live="polite"></p></section>
+<section class="panel" style="margin-top:22px"><h2>Lessons saved in this browser</h2><div id="admin-lesson-list" class="lesson-admin-list"></div></section>
+</main><script src="script.js"></script></body></html>

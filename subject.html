@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Subject Lessons | Divine Academy</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .learning-wrap{max-width:1180px;margin:auto;padding:30px 20px 70px}
+    .learning-hero{background:linear-gradient(125deg,#101e4b,#244fc4);color:white;border-radius:24px;padding:28px;display:flex;gap:22px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .learning-hero h1{margin:6px 0 10px;font-size:clamp(28px,4vw,42px)}
+    .learning-hero p{max-width:650px;color:#e2eaff;margin:0}
+    .eyebrow{font-size:12px;letter-spacing:1.8px;text-transform:uppercase;font-weight:800;color:#e9bd61}
+    .subject-switch{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}
+    .subject-switch a,.filter-pill{padding:10px 15px;border:1px solid #dce3f1;border-radius:999px;text-decoration:none;color:#20315d;background:white;font-weight:700}
+    .subject-switch a.active{background:#244fc4;color:white;border-color:#244fc4}
+    .learning-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.8fr);gap:22px;align-items:start}
+    .panel{background:#fff;border:1px solid #e2e8f3;border-radius:18px;padding:20px;box-shadow:0 8px 28px #172a4d0a}
+    .panel h2{margin-top:0;color:#16244a}
+    .progress-track{height:9px;background:#e8edf7;border-radius:20px;overflow:hidden;margin:10px 0}
+    .progress-fill{height:100%;background:#2f63d8;width:0;transition:width .2s}
+    .lesson-list{display:flex;flex-direction:column;gap:10px}
+    .lesson-row{display:flex;gap:12px;align-items:center;border:1px solid #e4eaf4;border-radius:14px;padding:13px;text-decoration:none;color:#18264a;background:#fff}
+    .lesson-row:hover{border-color:#6b8fe7;background:#f8faff}
+    .lesson-number{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#edf2ff;color:#244fc4;font-weight:800;flex-shrink:0}
+    .lesson-info{flex:1;min-width:0}.lesson-info strong{display:block}.lesson-info small{color:#65718b}
+    .lesson-status{font-size:12px;font-weight:800;color:#3b63bb;white-space:nowrap}
+    .continue-card{background:#f4f7ff;border-radius:14px;padding:16px;margin-bottom:14px}
+    .continue-card p{margin:6px 0 12px;color:#596681}
+    .action-btn{display:inline-block;background:#244fc4;color:#fff;text-decoration:none;padding:11px 15px;border-radius:10px;font-weight:800;border:0;cursor:pointer}
+    .soft-btn{display:inline-block;background:#eef2fc;color:#2347a4;text-decoration:none;padding:10px 13px;border-radius:10px;font-weight:800;border:0;cursor:pointer}
+    .empty-state{padding:28px;text-align:center;color:#66728a;background:#f8faff;border-radius:14px}
+    .watch-layout{max-width:1200px;margin:auto;padding:28px 20px 70px}
+    .watch-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,.85fr);gap:22px}
+    .player-box{background:#0b1020;border-radius:18px;overflow:hidden;aspect-ratio:16/9;display:grid;place-items:center}
+    .player-box iframe,.player-box video{width:100%;height:100%;border:0}
+    .player-placeholder{color:#fff;text-align:center;padding:24px}
+    .watch-meta{padding:18px 0}.watch-meta h1{margin:0 0 8px}
+    .watch-actions{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+    .small-muted{color:#68748c;font-size:14px}
+    .admin-wrap{max-width:920px;margin:auto;padding:30px 20px 70px}
+    .admin-form{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+    .admin-form label{display:block;font-weight:700;color:#25345c;font-size:14px}
+    .admin-form input,.admin-form select,.admin-form textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #d8e0ef;border-radius:10px;margin-top:7px;font:inherit;background:white}
+    .admin-form .wide{grid-column:1/-1}
+    .admin-note{background:#fff6df;border:1px solid #f0dba4;padding:14px;border-radius:12px;color:#6b5118;margin:18px 0}
+    @media(max-width:800px){.learning-grid,.watch-grid{grid-template-columns:1fr}.admin-form{grid-template-columns:1fr}.admin-form .wide{grid-column:auto}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html"><span class="brand-mark">DA</span><span>Divine Academy<small>Learn. Practice. Achieve.</small></span></a>
+      <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      <nav class="main-nav"><a href="index.html">Home</a><a href="courses.html">Subjects</a><a href="videos.html">My Learning</a><a href="admin.html">Add Lessons</a><a href="about.html">About</a></nav>
+    </div>
+  </header>
+  <main class="learning-wrap">
+    <section class="learning-hero">
+      <div><div class="eyebrow">Divine Academy • Online Classroom</div><h1 id="subject-title">Subject Lessons</h1><p id="subject-description">Learn chapter by chapter. Your progress and saved lessons are remembered on this browser.</p></div>
+      <a class="action-btn" href="videos.html">My Learning →</a>
+    </section>
+    <nav class="subject-switch" aria-label="Subjects">
+      <a href="subject.html?subject=maths" data-subject="maths">Mathematics</a>
+      <a href="subject.html?subject=science" data-subject="science">Science</a>
+      <a href="subject.html?subject=english" data-subject="english">English</a>
+    </nav>
+    <div class="learning-grid">
+      <section class="panel">
+        <h2>Lessons in order</h2>
+        <p class="small-muted">Start with Lesson 1, then use Next lesson to keep learning in sequence.</p>
+        <div id="lesson-list" class="lesson-list"></div>
+      </section>
+      <aside class="panel">
+        <h2>Your progress</h2>
+        <div id="progress-label">0 of 0 lessons completed</div><div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+        <div id="continue-area"></div>
+        <hr style="border:0;border-top:1px solid #e7ebf4;margin:20px 0">
+        <h3>Saved for later</h3><div id="saved-area"></div>
+      </aside>
+    </div>
+  </main>
+  <script src="script.js"></script>
+</body></html>
